@@ -20,8 +20,11 @@ public class RatingBarView extends LinearLayout {
     private OnRatingListener onRatingListener;
     private Object bindObject;
     private float starImageSize;
+    private float marginRight;
     private int starCount;
+    private float rating;
     private Drawable starEmptyDrawable;
+    private Drawable starHalfDrawable;
     private Drawable starFillDrawable;
     private int mStarCount;
 
@@ -34,55 +37,44 @@ public class RatingBarView extends LinearLayout {
         setOrientation(LinearLayout.HORIZONTAL);
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.RatingBarView);
         starImageSize = ta.getDimension(R.styleable.RatingBarView_starImageSize, 20);
+        marginRight = ta.getDimension(R.styleable.RatingBarView_marginRight, 10);
         starCount = ta.getInteger(R.styleable.RatingBarView_starCount, 5);
+        rating = ta.getFloat(R.styleable.RatingBarView_rating,0);
         starEmptyDrawable = ta.getDrawable(R.styleable.RatingBarView_starEmpty);
+        starHalfDrawable = ta.getDrawable(R.styleable.RatingBarView_starHalf);
         starFillDrawable = ta.getDrawable(R.styleable.RatingBarView_starFill);
         ta.recycle();
+        for (int i = 0; i < starCount; i++) {
 
-        for (int i = 0; i < starCount; ++i) {
-            ImageView imageView = getStarImageView(context, attrs);
-            imageView.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mClickable) {
-                        mStarCount = indexOfChild(v) + 1;
-                        setStar(mStarCount, true);
-                        if (onRatingListener != null) {
-                            onRatingListener.onRating(bindObject, mStarCount);
-                        }
-                    }
+            ImageView imageView = new ImageView(context);
+            ViewGroup.LayoutParams para = new ViewGroup.LayoutParams(Math.round(starImageSize), Math.round(starImageSize));
+            imageView.setLayoutParams(para);
+            // TODO:you can change gap between two stars use the padding
+            imageView.setPadding(0, 0, (int)marginRight, 0);
+
+            imageView.setMaxWidth(10);
+            imageView.setMaxHeight(10);
+            // 绘制选中的星星
+            if (i < rating) {
+                // 比当前选中的数量小
+                if (i < (int)rating) {
+                    imageView.setImageDrawable(starFillDrawable);
+                }else if (i+0.5 == rating)  {
+                    imageView.setImageDrawable(starHalfDrawable);
+                }else {
+                    imageView.setImageDrawable(starEmptyDrawable);
                 }
-            });
+            } else {
+                // 绘制正常的星星
+                imageView.setImageDrawable(starEmptyDrawable);
+            }
+
             addView(imageView);
         }
-    }
 
-    private ImageView getStarImageView(Context context, AttributeSet attrs) {
-        ImageView imageView = new ImageView(context);
-        ViewGroup.LayoutParams para = new ViewGroup.LayoutParams(Math.round(starImageSize), Math.round(starImageSize));
-        imageView.setLayoutParams(para);
-        // TODO:you can change gap between two stars use the padding
-        imageView.setPadding(0, 0, 40, 0);
-        imageView.setImageDrawable(starEmptyDrawable);
-        imageView.setMaxWidth(10);
-        imageView.setMaxHeight(10);
-        return imageView;
-    }
+        }
 
-    public void setStar(int starCount, boolean animation) {
-        starCount = starCount > this.starCount ? this.starCount : starCount;
-        starCount = starCount < 0 ? 0 : starCount;
-        for (int i = 0; i < starCount; ++i) {
-            ((ImageView) getChildAt(i)).setImageDrawable(starFillDrawable);
-            if (animation) {
-                ScaleAnimation sa = new ScaleAnimation(0, 0, 1, 1);
-                getChildAt(i).startAnimation(sa);
-            }
-        }
-        for (int i = this.starCount - 1; i >= starCount; --i) {
-            ((ImageView) getChildAt(i)).setImageDrawable(starEmptyDrawable);
-        }
-    }
+
 
     public int getStarCount() {
         return mStarCount;
